@@ -1,0 +1,57 @@
+replicaCount: 3
+
+image:
+  repository: ghcr.io/ayazlogistics/backend
+  pullPolicy: IfNotPresent
+  tag: "1.0.0"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: api.ayazlogistics.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: ayazlogistics-tls
+      hosts:
+        - api.ayazlogistics.com
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+postgresql:
+  enabled: true
+  auth:
+    username: ayazlogistics
+    database: ayazlogistics
+  primary:
+    persistence:
+      size: 50Gi
+
+redis:
+  enabled: true
+  master:
+    persistence:
+      size: 10Gi
+

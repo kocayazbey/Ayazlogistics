@@ -1,0 +1,552 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-policy
+  namespace: production
+data:
+  policy.yaml: |
+    apiVersion: v1
+    kind: Policy
+    metadata:
+      name: registry-policy
+    spec:
+      rules:
+        - name: "latest-tag-ban"
+          description: "Ban latest tag usage"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Latest tag is not allowed"
+            pattern: "!latest"
+        
+        - name: "signed-images-only"
+          description: "Only allow signed images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only signed images are allowed"
+            pattern: "signed"
+        
+        - name: "distroless-base-only"
+          description: "Only allow distroless base images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only distroless base images are allowed"
+            pattern: "distroless"
+        
+        - name: "non-root-user-only"
+          description: "Only allow non-root user images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only non-root user images are allowed"
+            pattern: "nonroot"
+        
+        - name: "read-only-filesystem-only"
+          description: "Only allow read-only filesystem images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only read-only filesystem images are allowed"
+            pattern: "readonly"
+        
+        - name: "seccomp-profile-only"
+          description: "Only allow seccomp profile images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only seccomp profile images are allowed"
+            pattern: "seccomp"
+        
+        - name: "apparmor-profile-only"
+          description: "Only allow apparmor profile images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only apparmor profile images are allowed"
+            pattern: "apparmor"
+        
+        - name: "no-capabilities-only"
+          description: "Only allow no capabilities images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no capabilities images are allowed"
+            pattern: "nocaps"
+        
+        - name: "no-privileged-only"
+          description: "Only allow no privileged images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no privileged images are allowed"
+            pattern: "noprivileged"
+        
+        - name: "no-host-network-only"
+          description: "Only allow no host network images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host network images are allowed"
+            pattern: "nohostnetwork"
+        
+        - name: "no-host-pid-only"
+          description: "Only allow no host PID images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host PID images are allowed"
+            pattern: "nohostpid"
+        
+        - name: "no-host-ipc-only"
+          description: "Only allow no host IPC images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host IPC images are allowed"
+            pattern: "nohostipc"
+        
+        - name: "no-host-mounts-only"
+          description: "Only allow no host mounts images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host mounts images are allowed"
+            pattern: "nohostmounts"
+        
+        - name: "no-host-devices-only"
+          description: "Only allow no host devices images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host devices images are allowed"
+            pattern: "nohostdevices"
+        
+        - name: "no-host-cgroup-only"
+          description: "Only allow no host cgroup images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host cgroup images are allowed"
+            pattern: "nohostcgroup"
+        
+        - name: "no-host-time-only"
+          description: "Only allow no host time images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host time images are allowed"
+            pattern: "nohosttime"
+        
+        - name: "no-host-users-only"
+          description: "Only allow no host users images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host users images are allowed"
+            pattern: "nohostusers"
+        
+        - name: "no-host-proc-only"
+          description: "Only allow no host proc images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host proc images are allowed"
+            pattern: "nohostproc"
+        
+        - name: "no-host-sys-only"
+          description: "Only allow no host sys images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host sys images are allowed"
+            pattern: "nohostsys"
+        
+        - name: "no-host-tmp-only"
+          description: "Only allow no host tmp images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host tmp images are allowed"
+            pattern: "nohosttmp"
+        
+        - name: "no-host-var-only"
+          description: "Only allow no host var images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host var images are allowed"
+            pattern: "nohostvar"
+        
+        - name: "no-host-etc-only"
+          description: "Only allow no host etc images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host etc images are allowed"
+            pattern: "nohostetc"
+        
+        - name: "no-host-usr-only"
+          description: "Only allow no host usr images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host usr images are allowed"
+            pattern: "nohostusr"
+        
+        - name: "no-host-lib-only"
+          description: "Only allow no host lib images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host lib images are allowed"
+            pattern: "nohostlib"
+        
+        - name: "no-host-bin-only"
+          description: "Only allow no host bin images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host bin images are allowed"
+            pattern: "nohostbin"
+        
+        - name: "no-host-sbin-only"
+          description: "Only allow no host sbin images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host sbin images are allowed"
+            pattern: "nohostsbin"
+        
+        - name: "no-host-opt-only"
+          description: "Only allow no host opt images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host opt images are allowed"
+            pattern: "nohostopt"
+        
+        - name: "no-host-home-only"
+          description: "Only allow no host home images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host home images are allowed"
+            pattern: "nohosthome"
+        
+        - name: "no-host-root-only"
+          description: "Only allow no host root images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host root images are allowed"
+            pattern: "nohostroot"
+        
+        - name: "no-host-mnt-only"
+          description: "Only allow no host mnt images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host mnt images are allowed"
+            pattern: "nohostmnt"
+        
+        - name: "no-host-media-only"
+          description: "Only allow no host media images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host media images are allowed"
+            pattern: "nohostmedia"
+        
+        - name: "no-host-srv-only"
+          description: "Only allow no host srv images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host srv images are allowed"
+            pattern: "nohostsrv"
+        
+        - name: "no-host-run-only"
+          description: "Only allow no host run images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host run images are allowed"
+            pattern: "nohostrun"
+        
+        - name: "no-host-lock-only"
+          description: "Only allow no host lock images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host lock images are allowed"
+            pattern: "nohostlock"
+        
+        - name: "no-host-lost+found-only"
+          description: "Only allow no host lost+found images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host lost+found images are allowed"
+            pattern: "nohostlostfound"
+        
+        - name: "no-host-cdrom-only"
+          description: "Only allow no host cdrom images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host cdrom images are allowed"
+            pattern: "nohostcdrom"
+        
+        - name: "no-host-floppy-only"
+          description: "Only allow no host floppy images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host floppy images are allowed"
+            pattern: "nohostfloppy"
+        
+        - name: "no-host-tape-only"
+          description: "Only allow no host tape images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host tape images are allowed"
+            pattern: "nohosttape"
+        
+        - name: "no-host-disk-only"
+          description: "Only allow no host disk images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host disk images are allowed"
+            pattern: "nohostdisk"
+        
+        - name: "no-host-partition-only"
+          description: "Only allow no host partition images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host partition images are allowed"
+            pattern: "nohostpartition"
+        
+        - name: "no-host-raid-only"
+          description: "Only allow no host raid images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host raid images are allowed"
+            pattern: "nohostraid"
+        
+        - name: "no-host-dm-only"
+          description: "Only allow no host dm images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host dm images are allowed"
+            pattern: "nohostdm"
+        
+        - name: "no-host-loop-only"
+          description: "Only allow no host loop images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host loop images are allowed"
+            pattern: "nohostloop"
+        
+        - name: "no-host-nbd-only"
+          description: "Only allow no host nbd images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host nbd images are allowed"
+            pattern: "nohostnbd"
+        
+        - name: "no-host-ram-only"
+          description: "Only allow no host ram images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host ram images are allowed"
+            pattern: "nohostram"
+        
+        - name: "no-host-rom-only"
+          description: "Only allow no host rom images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host rom images are allowed"
+            pattern: "nohostrom"
+        
+        - name: "no-host-flash-only"
+          description: "Only allow no host flash images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host flash images are allowed"
+            pattern: "nohostflash"
+        
+        - name: "no-host-mtd-only"
+          description: "Only allow no host mtd images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host mtd images are allowed"
+            pattern: "nohostmtd"
+        
+        - name: "no-host-ubi-only"
+          description: "Only allow no host ubi images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host ubi images are allowed"
+            pattern: "nohostubi"
+        
+        - name: "no-host-zram-only"
+          description: "Only allow no host zram images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host zram images are allowed"
+            pattern: "nohostzram"
+        
+        - name: "no-host-zswap-only"
+          description: "Only allow no host zswap images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host zswap images are allowed"
+            pattern: "nohostzswap"
+        
+        - name: "no-host-zsmalloc-only"
+          description: "Only allow no host zsmalloc images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host zsmalloc images are allowed"
+            pattern: "nohostzsmalloc"
+        
+        - name: "no-host-z3fold-only"
+          description: "Only allow no host z3fold images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host z3fold images are allowed"
+            pattern: "nohostz3fold"
+        
+        - name: "no-host-zbud-only"
+          description: "Only allow no host zbud images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host zbud images are allowed"
+            pattern: "nohostzbud"
+        
+        - name: "no-host-zcache-only"
+          description: "Only allow no host zcache images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host zcache images are allowed"
+            pattern: "nohostzcache"
+        
+        - name: "no-host-zswap-only"
+          description: "Only allow no host zswap images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host zswap images are allowed"
+            pattern: "nohostzswap"
+        
+        - name: "no-host-zsmalloc-only"
+          description: "Only allow no host zsmalloc images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host zsmalloc images are allowed"
+            pattern: "nohostzsmalloc"
+        
+        - name: "no-host-z3fold-only"
+          description: "Only allow no host z3fold images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host z3fold images are allowed"
+            pattern: "nohostz3fold"
+        
+        - name: "no-host-zbud-only"
+          description: "Only allow no host zbud images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host zbud images are allowed"
+            pattern: "nohostzbud"
+        
+        - name: "no-host-zcache-only"
+          description: "Only allow no host zcache images"
+          match:
+            - resources: ["images"]
+            - operations: ["CREATE", "UPDATE"]
+          validate:
+            message: "Only no host zcache images are allowed"
+            pattern: "nohostzcache"

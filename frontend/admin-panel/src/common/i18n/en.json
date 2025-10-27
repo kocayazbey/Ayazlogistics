@@ -1,0 +1,110 @@
+{
+  "wms": {
+    "title": "WMS - Warehouse Management System",
+    "subtitle": "Manage and optimize your warehouse operations",
+    "inventory": {
+      "title": "Inventory Management",
+      "subtitle": "Manage your warehouse inventory",
+      "addItem": "Add Item",
+      "export": "Export",
+      "search": "Search by name or SKU...",
+      "status": {
+        "inStock": "In Stock",
+        "lowStock": "Low Stock",
+        "outOfStock": "Out of Stock"
+      },
+      "columns": {
+        "sku": "SKU",
+        "name": "Name",
+        "description": "Description",
+        "quantity": "Quantity",
+        "unitPrice": "Unit Price",
+        "location": "Location",
+        "status": "Status",
+        "lastUpdated": "Last Updated"
+      },
+      "summary": {
+        "totalItems": "Total Items",
+        "inStock": "In Stock",
+        "lowStock": "Low Stock",
+        "outOfStock": "Out of Stock"
+      }
+    },
+    "operations": {
+      "title": "Operations",
+      "subtitle": "Manage warehouse operations and workflows",
+      "newOperation": "New Operation",
+      "export": "Export",
+      "columns": {
+        "operationId": "Operation ID",
+        "type": "Type",
+        "status": "Status",
+        "priority": "Priority",
+        "assignedTo": "Assigned To",
+        "startTime": "Start Time",
+        "items": "Items",
+        "location": "Location"
+      },
+      "status": {
+        "pending": "Pending",
+        "inProgress": "In Progress",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "summary": {
+        "totalOperations": "Total Operations",
+        "inProgress": "In Progress",
+        "pending": "Pending",
+        "completed": "Completed"
+      }
+    },
+    "receiving": {
+      "title": "Receiving",
+      "subtitle": "Manage receiving operations",
+      "newReceiving": "New Receiving"
+    },
+    "picking": {
+      "title": "Picking",
+      "subtitle": "Manage picking operations",
+      "newPicking": "New Picking"
+    },
+    "shipping": {
+      "title": "Shipping",
+      "subtitle": "Manage shipping operations",
+      "newShipping": "New Shipping"
+    },
+    "navigation": {
+      "quickActions": "Quick Actions",
+      "quickAccess": "Quick Access",
+      "recentActivities": "Recent Activities",
+      "warehouseStatus": "Warehouse Status"
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "export": "Export",
+      "add": "Add",
+      "create": "Create",
+      "update": "Update",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "common": {
+      "loading": "Loading...",
+      "error": "Error",
+      "success": "Success",
+      "warning": "Warning",
+      "info": "Info",
+      "ok": "OK",
+      "yes": "Yes",
+      "no": "No"
+    }
+  }
+}

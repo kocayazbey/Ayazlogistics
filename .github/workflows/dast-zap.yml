@@ -1,0 +1,42 @@
+name: DAST Security Scan
+
+on:
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 3 * * *' # Daily at 3 AM
+
+jobs:
+  dast-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup OWASP ZAP
+        run: |
+          wget https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2.14.0_Linux.tar.gz
+          tar -xzf ZAP_2.14.0_Linux.tar.gz
+          sudo mv ZAP_2.14.0 /opt/zap
+      
+      - name: Start application
+        run: |
+          npm ci
+          npm run build
+          npm start &
+          sleep 30
+      
+      - name: Run ZAP baseline scan
+        run: |
+          /opt/zap/zap.sh -cmd -quickurl http://localhost:3000 -quickprogress -quickout baseline-report.json
+      
+      - name: Run ZAP full scan
+        run: |
+          /opt/zap/zap.sh -cmd -quickurl http://localhost:3000 -quickprogress -quickout full-scan-report.json
+      
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-results
+          path: |
+            baseline-report.json
+            full-scan-report.json

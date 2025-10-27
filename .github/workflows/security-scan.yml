@@ -1,0 +1,163 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 3 * * 1' # Weekly on Monday at 3 AM
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Run Trivy container scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ayazlogistics/backend:latest'
+          format: 'sarif'
+          output: 'trivy-container-results.sarif'
+
+      - name: Run Checkov IaC scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: 'k8s/'
+          framework: kubernetes
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+
+      - name: Run Checkov Docker scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: '.'
+          framework: dockerfile
+          output_format: sarif
+          output_file_path: checkov-docker-results.sarif
+
+      - name: Run Semgrep SAST scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/javascript
+            p/typescript
+            p/dockerfile
+            p/kubernetes
+          generateSarif: "1"
+          generateGitHubSummary: "1"
+
+      - name: Run CodeQL analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript,typescript
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        with:
+          args: --severity-threshold=high --json-file-output=snyk-results.json
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Run OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.7.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            trivy-results.sarif
+            trivy-container-results.sarif
+            checkov-results.sarif
+            checkov-docker-results.sarif
+            snyk-results.json
+          retention-days: 30
+
+      - name: Upload SARIF files
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: |
+            trivy-results.sarif
+            trivy-container-results.sarif
+            checkov-results.sarif
+            checkov-docker-results.sarif
+          category: security-scan
+
+      - name: Comment PR with security results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read security scan results
+            let trivyResults = {};
+            let snykResults = {};
+            
+            try {
+              trivyResults = JSON.parse(fs.readFileSync('trivy-results.sarif', 'utf8'));
+            } catch (e) {
+              console.log('Trivy results not found');
+            }
+            
+            try {
+              snykResults = JSON.parse(fs.readFileSync('snyk-results.json', 'utf8'));
+            } catch (e) {
+              console.log('Snyk results not found');
+            }
+            
+            // Create security comment
+            const comment = `## 🔒 Security Scan Results
+            
+            ### Vulnerability Summary
+            - **Trivy Findings**: ${trivyResults.runs?.[0]?.results?.length || 0}
+            - **Snyk Findings**: ${snykResults.vulnerabilities?.length || 0}
+            
+            ### Security Recommendations
+            - Review and fix high/critical vulnerabilities
+            - Update dependencies with security patches
+            - Implement security best practices
+            - Regular security scanning in CI/CD
+            
+            ### Next Steps
+            - Address critical vulnerabilities immediately
+            - Review medium/low severity issues
+            - Update security policies if needed`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

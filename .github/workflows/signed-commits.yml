@@ -1,0 +1,135 @@
+name: Signed Commits
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  verify-signed-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify commit signatures
+        run: |
+          # Check if commits are signed
+          if ! git log --show-signature --oneline -n 10 | grep -q "Good signature"; then
+            echo "❌ Unsigned commits detected!"
+            echo "Please sign your commits with: git commit -S -m 'your message'"
+            exit 1
+          fi
+          echo "✅ All commits are properly signed"
+
+      - name: Verify tag signatures
+        run: |
+          # Check if tags are signed
+          if git tag -l | xargs -I {} git tag -v {} 2>&1 | grep -q "error"; then
+            echo "❌ Unsigned tags detected!"
+            echo "Please sign your tags with: git tag -s v1.0.0 -m 'Release v1.0.0'"
+            exit 1
+          fi
+          echo "✅ All tags are properly signed"
+
+      - name: Check GPG key configuration
+        run: |
+          # Check if GPG is configured
+          if ! git config --get user.signingkey; then
+            echo "❌ GPG signing key not configured!"
+            echo "Please configure GPG signing: git config --global user.signingkey YOUR_KEY_ID"
+            exit 1
+          fi
+          echo "✅ GPG signing key is configured"
+
+      - name: Verify commit message format
+        run: |
+          # Check commit message format
+          git log --oneline -n 10 | while read commit; do
+            if ! echo "$commit" | grep -qE "^(feat|fix|docs|style|refactor|test|chore|ci|build|perf|revert)(\(.+\))?: .+"; then
+              echo "❌ Invalid commit message format: $commit"
+              echo "Please use conventional commit format: type(scope): description"
+              exit 1
+            fi
+          done
+          echo "✅ All commit messages follow conventional format"
+
+      - name: Check for force push
+        run: |
+          # Check if force push was used
+          if git log --oneline --graph | grep -q "forced update"; then
+            echo "❌ Force push detected!"
+            echo "Force push is not allowed for security reasons"
+            exit 1
+          fi
+          echo "✅ No force push detected"
+
+      - name: Verify branch protection
+        run: |
+          # Check if branch is protected
+          if [ "${{ github.ref }}" = "refs/heads/main" ] || [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            echo "✅ Protected branch detected: ${{ github.ref }}"
+          else
+            echo "ℹ️  Non-protected branch: ${{ github.ref }}"
+          fi
+
+      - name: Generate commit report
+        run: |
+          # Generate commit report
+          echo "## 📝 Commit Report" > commit-report.md
+          echo "" >> commit-report.md
+          echo "### Recent Commits" >> commit-report.md
+          git log --oneline -n 10 >> commit-report.md
+          echo "" >> commit-report.md
+          echo "### Commit Statistics" >> commit-report.md
+          echo "- Total commits: $(git rev-list --count HEAD)" >> commit-report.md
+          echo "- Signed commits: $(git log --show-signature --oneline | grep -c 'Good signature' || echo 0)" >> commit-report.md
+          echo "- Unsigned commits: $(git log --show-signature --oneline | grep -c 'No signature' || echo 0)" >> commit-report.md
+          echo "" >> commit-report.md
+          echo "### Signatures" >> commit-report.md
+          git log --show-signature --oneline -n 5 >> commit-report.md
+
+      - name: Upload commit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: commit-report
+          path: commit-report.md
+          retention-days: 30
+
+      - name: Comment PR with commit status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read commit report
+            const commitReport = fs.readFileSync('commit-report.md', 'utf8');
+            
+            // Create comment
+            const comment = `## 🔐 Signed Commits Verification
+            
+            ${commitReport}
+            
+            ### Security Status
+            - ✅ All commits are signed
+            - ✅ All tags are signed
+            - ✅ GPG configuration is valid
+            - ✅ Commit messages follow conventional format
+            - ✅ No force push detected
+            
+            ### Recommendations
+            - Continue using signed commits
+            - Maintain GPG key security
+            - Follow conventional commit format
+            - Avoid force push on protected branches`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

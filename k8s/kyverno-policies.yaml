@@ -1,0 +1,90 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+spec:
+  validationFailureAction: enforce
+  background: true
+  rules:
+  - name: no-latest
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    validate:
+      message: "Using 'latest' tag is not allowed"
+      pattern:
+        spec:
+          containers:
+          - image: "!*:latest"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-non-root-user
+spec:
+  validationFailureAction: enforce
+  background: true
+  rules:
+  - name: check-non-root
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    validate:
+      message: "Container must run as non-root user"
+      pattern:
+        spec:
+          =(securityContext):
+            =(runAsNonRoot): true
+          containers:
+          - =(securityContext):
+              =(runAsNonRoot): true
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-readonly-rootfs
+spec:
+  validationFailureAction: enforce
+  background: true
+  rules:
+  - name: check-readonly-rootfs
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    validate:
+      message: "Container must have read-only root filesystem"
+      pattern:
+        spec:
+          containers:
+          - =(securityContext):
+              =(readOnlyRootFilesystem): true
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+spec:
+  validationFailureAction: enforce
+  background: true
+  rules:
+  - name: check-resource-limits
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    validate:
+      message: "Container must have resource limits"
+      pattern:
+        spec:
+          containers:
+          - =(resources):
+              =(limits):
+                =(memory): "?*"
+                =(cpu): "?*"

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-panel
+  namespace: production
+  labels:
+    app: ayazlogistics
+    component: frontend
+spec:
+  selector:
+    app: ayazlogistics
+    component: frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3001
+    protocol: TCP
+  type: ClusterIP

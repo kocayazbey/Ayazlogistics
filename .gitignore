@@ -1,0 +1,105 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+backend.log
+compile.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+playwright-report/
+
+# Temporary files
+*.tmp
+tmp/
+temp/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Docker
+.dockerignore
+
+# Compiled outputs
+*.js.map
+*.d.ts.map
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets
+secrets/
+*.key
+*.pem
+*.cert
+*.crt
+
+# Cache
+.cache/
+.npm/
+.eslintcache
+*.cache
+
+# Deployment
+.vercel/
+.netlify/
+
+# Misc
+*.md
+!README.md
+ADMIN_PANEL_IMPLEMENTATION_REPORT.md
+ADMIN_PANEL_TEST_REPORT.md
+AyazLogistics_Ultra_Detailed_Audit_Report_2025-10-25.json
+BACKEND_COMPLETION_SUMMARY.md
+BACKEND_DURUM.md
+BACKEND_FRONTEND_CONNECTION_FIX.md
+BACKEND_STATUS.md
+BUILD_ERRORS_FIXED.md
+DATABASE_INDEXING_ANALIZ.md
+DUZENLEME_OZETI.md
+EKLEMELER_PLANI.md
+FRONTEND_STARTUP_STATUS.md
+FRONTEND_TAMAMLAMA_RAPORU.md
+GERCEK_KOD_ANALIZ_RAPORU.md
+IMPLEMENTATION_COMPLETION_REPORT.md
+KOD_ANALIZ_RAPORU.md
+PORT_KONFIGURASYONU.md
+REALTIME_ENHANCEMENTS_REPORT.md
+SECURITY_IMPLEMENTATION_README.md
+SERVISLER_BASLATILDI.md
+SYSTEM_STARTUP_STATUS.md
+TEST_SONUCU.md
+TODO_COMPLETION_LIST.md
+frontend_final.log
+backend_final.log

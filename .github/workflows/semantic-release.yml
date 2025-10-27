@@ -1,0 +1,117 @@
+name: Semantic Release
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  semantic-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          semantic_version: 19
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+            @semantic-release/exec
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Release Notes
+        if: steps.semantic-release.outputs.new-release-published == 'true'
+        run: |
+          echo "New release published: ${{ steps.semantic-release.outputs.new-release-version }}"
+          echo "Release notes: ${{ steps.semantic-release.outputs.new-release-notes }}"
+
+      - name: Update Docker Images
+        if: steps.semantic-release.outputs.new-release-published == 'true'
+        run: |
+          # Update Docker images with new version
+          docker build -t ayazlogistics/backend:${{ steps.semantic-release.outputs.new-release-version }} .
+          docker build -t ayazlogistics/frontend:${{ steps.semantic-release.outputs.new-release-version }} ./frontend/admin-panel
+          
+          # Push to registry
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker push ayazlogistics/backend:${{ steps.semantic-release.outputs.new-release-version }}
+          docker push ayazlogistics/frontend:${{ steps.semantic-release.outputs.new-release-version }}
+
+      - name: Update Kubernetes Manifests
+        if: steps.semantic-release.outputs.new-release-published == 'true'
+        run: |
+          # Update image tags in Kubernetes manifests
+          sed -i "s|image: ayazlogistics/backend:.*|image: ayazlogistics/backend:${{ steps.semantic-release.outputs.new-release-version }}|g" k8s/production/deployment.yaml
+          sed -i "s|image: ayazlogistics/frontend:.*|image: ayazlogistics/frontend:${{ steps.semantic-release.outputs.new-release-version }}|g" k8s/production/deployment.yaml
+          
+          # Commit changes
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add k8s/production/deployment.yaml
+          git commit -m "chore: update image tags to ${{ steps.semantic-release.outputs.new-release-version }}"
+          git push
+
+      - name: Deploy to Staging
+        if: steps.semantic-release.outputs.new-release-published == 'true'
+        run: |
+          # Deploy to staging environment
+          kubectl apply -f k8s/staging/
+          kubectl set image deployment/ayazlogistics-backend backend=ayazlogistics/backend:${{ steps.semantic-release.outputs.new-release-version }} -n staging
+          kubectl set image deployment/ayazlogistics-frontend frontend=ayazlogistics/frontend:${{ steps.semantic-release.outputs.new-release-version }} -n staging
+
+      - name: Run Integration Tests
+        if: steps.semantic-release.outputs.new-release-published == 'true'
+        run: |
+          # Wait for deployment to be ready
+          kubectl rollout status deployment/ayazlogistics-backend -n staging --timeout=300s
+          kubectl rollout status deployment/ayazlogistics-frontend -n staging --timeout=300s
+          
+          # Run integration tests
+          npm run test:integration
+
+      - name: Deploy to Production
+        if: steps.semantic-release.outputs.new-release-published == 'true' && github.ref == 'refs/heads/main'
+        run: |
+          # Deploy to production environment
+          kubectl apply -f k8s/production/
+          kubectl set image deployment/ayazlogistics-backend backend=ayazlogistics/backend:${{ steps.semantic-release.outputs.new-release-version }} -n production
+          kubectl set image deployment/ayazlogistics-frontend frontend=ayazlogistics/frontend:${{ steps.semantic-release.outputs.new-release-version }} -n production
+          
+          # Wait for rollout to complete
+          kubectl rollout status deployment/ayazlogistics-backend -n production --timeout=600s
+          kubectl rollout status deployment/ayazlogistics-frontend -n production --timeout=600s
+
+      - name: Notify Teams
+        if: steps.semantic-release.outputs.new-release-published == 'true'
+        run: |
+          # Send notification to Slack
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"🚀 New release published: ${{ steps.semantic-release.outputs.new-release-version }}\"}" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -1,0 +1,252 @@
+groups:
+  - name: ayazlogistics-alerts
+    rules:
+      # Sistem Sağlığı Alertleri
+      - alert: ServiceDown
+        expr: up{job="ayazlogistics-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: backend
+        annotations:
+          summary: "AyazLogistics backend servisi çalışmıyor"
+          description: "Backend servisi {{ $labels.instance }} adresinde {{ $value }} dakikadır çalışmıyor."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{job="ayazlogistics-backend",status=~"5.."}[5m]) / rate(http_requests_total{job="ayazlogistics-backend"}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "Yüksek hata oranı tespit edildi"
+          description: "Backend servisinde hata oranı %{{ $value | humanizePercentage }} seviyesinde."
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="ayazlogistics-backend"}[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "Yüksek yanıt süresi tespit edildi"
+          description: "95. persentil yanıt süresi {{ $value }}saniye seviyesinde."
+
+      # Veritabanı Alertleri
+      - alert: DatabaseConnectionHigh
+        expr: pg_stat_database_numbackends > 80
+        for: 2m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Yüksek veritabanı bağlantı sayısı"
+          description: "Veritabanında {{ $value }} aktif bağlantı var."
+
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Veritabanı servisi çalışmıyor"
+          description: "PostgreSQL veritabanı {{ $labels.instance }} adresinde çalışmıyor."
+
+      # Redis Alertleri
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis servisi çalışmıyor"
+          description: "Redis cache servisi {{ $labels.instance }} adresinde çalışmıyor."
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 2m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis bellek kullanımı yüksek"
+          description: "Redis bellek kullanımı %{{ $value | humanizePercentage }} seviyesinde."
+
+      # AI Model Alertleri
+      - alert: AIModelAccuracyLow
+        expr: ayazlogistics_ai_model_accuracy < 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: ai
+        annotations:
+          summary: "AI model doğruluk oranı düşük"
+          description: "{{ $labels.model_type }} modelinin doğruluk oranı %{{ $value | humanizePercentage }} seviyesinde."
+
+      - alert: AIModelTrainingFailed
+        expr: ayazlogistics_ai_training_failures_total > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: ai
+        annotations:
+          summary: "AI model eğitimi başarısız"
+          description: "{{ $labels.model_type }} modeli eğitimi başarısız oldu."
+
+      - alert: AIModelPredictionError
+        expr: rate(ayazlogistics_ai_prediction_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: ai
+        annotations:
+          summary: "AI model tahmin hata oranı yüksek"
+          description: "{{ $labels.model_type }} modelinde tahmin hata oranı yüksek."
+
+      # İş Mantığı Alertleri
+      - alert: OrderProcessingDelay
+        expr: ayazlogistics_orders_pending_duration_seconds > 3600
+        for: 5m
+        labels:
+          severity: warning
+          service: orders
+        annotations:
+          summary: "Sipariş işleme gecikmesi"
+          description: "{{ $value }} sipariş 1 saatten fazla bekliyor."
+
+      - alert: InventoryLowStock
+        expr: ayazlogistics_inventory_levels < 10
+        for: 1m
+        labels:
+          severity: warning
+          service: inventory
+        annotations:
+          summary: "Düşük stok seviyesi"
+          description: "{{ $labels.item_name }} ürününde stok seviyesi {{ $value }} adet."
+
+      - alert: InventoryOutOfStock
+        expr: ayazlogistics_inventory_levels == 0
+        for: 0m
+        labels:
+          severity: critical
+          service: inventory
+        annotations:
+          summary: "Stok tükendi"
+          description: "{{ $labels.item_name }} ürününde stok tükendi."
+
+      # Mobil Uygulama Alertleri
+      - alert: MobileAppErrors
+        expr: rate(ayazlogistics_mobile_app_errors_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          service: mobile
+        annotations:
+          summary: "Mobil uygulama hata oranı yüksek"
+          description: "Mobil uygulamada hata oranı %{{ $value | humanizePercentage }} seviyesinde."
+
+      - alert: MobileAppCrashes
+        expr: rate(ayazlogistics_mobile_app_crashes_total[5m]) > 0.01
+        for: 1m
+        labels:
+          severity: critical
+          service: mobile
+        annotations:
+          summary: "Mobil uygulama çökmeleri"
+          description: "Mobil uygulamada çökme oranı %{{ $value | humanizePercentage }} seviyesinde."
+
+      # Sistem Kaynak Alertleri
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Yüksek CPU kullanımı"
+          description: "{{ $labels.instance }} sunucusunda CPU kullanımı %{{ $value }} seviyesinde."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Yüksek bellek kullanımı"
+          description: "{{ $labels.instance }} sunucusunda bellek kullanımı %{{ $value | humanizePercentage }} seviyesinde."
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 2m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Düşük disk alanı"
+          description: "{{ $labels.instance }} sunucusunda {{ $labels.mountpoint }} disk alanı %{{ $value | humanizePercentage }} seviyesinde."
+
+      # Ağ Alertleri
+      - alert: NetworkLatencyHigh
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="ayazlogistics-backend"}[5m])) > 5
+        for: 3m
+        labels:
+          severity: warning
+          service: network
+        annotations:
+          summary: "Yüksek ağ gecikmesi"
+          description: "Ağ gecikmesi {{ $value }}saniye seviyesinde."
+
+      # Güvenlik Alertleri
+      - alert: UnauthorizedAccess
+        expr: rate(http_requests_total{job="ayazlogistics-backend",status="401"}[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "Yetkisiz erişim denemeleri"
+          description: "Yetkisiz erişim deneme oranı yüksek."
+
+      - alert: BruteForceAttack
+        expr: rate(http_requests_total{job="ayazlogistics-backend",status="401"}[1m]) > 10
+        for: 0m
+        labels:
+          severity: critical
+          service: security
+        annotations:
+          summary: "Olası brute force saldırısı"
+          description: "Dakikada {{ $value }} yetkisiz erişim denemesi tespit edildi."
+
+      # İş Süreçleri Alertleri
+      - alert: OrderProcessingStopped
+        expr: rate(ayazlogistics_orders_processed_total[10m]) == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: orders
+        annotations:
+          summary: "Sipariş işleme durdu"
+          description: "Son 10 dakikada hiç sipariş işlenmedi."
+
+      - alert: InventorySyncFailed
+        expr: ayazlogistics_inventory_sync_failures_total > 0
+        for: 0m
+        labels:
+          severity: warning
+          service: inventory
+        annotations:
+          summary: "Envanter senkronizasyonu başarısız"
+          description: "Envanter senkronizasyonu başarısız oldu."
+
+      - alert: PaymentProcessingError
+        expr: rate(ayazlogistics_payment_errors_total[5m]) > 0.01
+        for: 2m
+        labels:
+          severity: critical
+          service: payments
+        annotations:
+          summary: "Ödeme işleme hatası"
+          description: "Ödeme işleme hata oranı %{{ $value | humanizePercentage }} seviyesinde."

@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ayazlogistics-postgres
+    environment:
+      POSTGRES_DB: ayazlogistics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./drizzle/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - ayazlogistics-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ayazlogistics-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ayazlogistics-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ayazlogistics-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=password
+      - DATABASE_NAME=ayazlogistics
+      - DATABASE_SSL=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - JWT_SECRET=your-super-secret-jwt-key-here-minimum-32-characters-secure-production-key
+      - JWT_REFRESH_SECRET=your-super-secret-refresh-key-here-minimum-32-characters-secure
+      - JWT_ACCESS_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - JWT_AUDIENCE=ayazlogistics-api
+      - JWT_ISSUER=ayazlogistics-auth
+      - SESSION_SECRET=your-session-secret-here-minimum-32-characters
+      - APP_NAME=AyazLogistics
+      - APP_URL=http://localhost:3000
+      - API_PREFIX=api
+      - CORS_ORIGIN=http://localhost:3001,http://localhost:3000
+      - CORS_CREDENTIALS=true
+      - ENABLE_SWAGGER=true
+      - ENABLE_COMPRESSION=true
+      - TZ=Europe/Istanbul
+      - DEFAULT_LANGUAGE=tr
+      - DEFAULT_CURRENCY=TRY
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ayazlogistics-network
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ayazlogistics-network:
+    driver: bridge

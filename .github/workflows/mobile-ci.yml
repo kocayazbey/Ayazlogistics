@@ -1,0 +1,263 @@
+name: Mobile CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'mobile-apps/**'
+      - 'mobile/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'mobile-apps/**'
+      - 'mobile/**'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Target platform (android, ios, both)'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - android
+          - ios
+          - both
+      build_type:
+        description: 'Build type (debug, release)'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      platform: ${{ steps.setup.outputs.platform }}
+      build_type: ${{ steps.setup.outputs.build_type }}
+    steps:
+      - name: Setup
+        id: setup
+        run: |
+          echo "platform=${{ github.event.inputs.platform || 'both' }}" >> $GITHUB_OUTPUT
+          echo "build_type=${{ github.event.inputs.build_type || 'debug' }}" >> $GITHUB_OUTPUT
+
+  android-build:
+    needs: setup
+    if: needs.setup.outputs.platform == 'android' || needs.setup.outputs.platform == 'both'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd mobile-apps/unified-app
+          npm ci
+
+      - name: Build Android app
+        run: |
+          cd mobile-apps/unified-app
+          npm run build:android
+
+      - name: Sign Android APK
+        run: |
+          cd mobile-apps/unified-app
+          # Sign the APK with your keystore
+          jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore android-release-key.keystore platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk alias_name
+          zipalign -v 4 platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk platforms/android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: mobile-apps/unified-app/platforms/android/app/build/outputs/apk/release/app-release.apk
+
+  ios-build:
+    needs: setup
+    if: needs.setup.outputs.platform == 'ios' || needs.setup.outputs.platform == 'both'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd mobile-apps/unified-app
+          npm ci
+
+      - name: Build iOS app
+        run: |
+          cd mobile-apps/unified-app
+          npm run build:ios
+
+      - name: Sign iOS app
+        run: |
+          cd mobile-apps/unified-app
+          # Sign the iOS app with your certificate
+          security import ios-release-key.p12 -k ~/Library/Keychains/login.keychain -P ${{ secrets.IOS_KEY_PASSWORD }}
+          security set-key-partition-list -S apple-tool:,apple: -s -k ${{ secrets.IOS_KEY_PASSWORD }} ~/Library/Keychains/login.keychain
+          codesign --force --sign "iPhone Distribution: Your Company" platforms/ios/build/device/AyazLogistics.app
+
+      - name: Upload iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: mobile-apps/unified-app/platforms/ios/build/device/AyazLogistics.ipa
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd mobile-apps/unified-app
+          npm ci
+
+      - name: Run unit tests
+        run: |
+          cd mobile-apps/unified-app
+          npm run test:unit
+
+      - name: Run integration tests
+        run: |
+          cd mobile-apps/unified-app
+          npm run test:integration
+
+      - name: Run E2E tests
+        run: |
+          cd mobile-apps/unified-app
+          npm run test:e2e
+
+  security-scan:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd mobile-apps/unified-app
+          npm ci
+
+      - name: Run security scan
+        run: |
+          cd mobile-apps/unified-app
+          npm audit --audit-level=moderate
+
+      - name: Run dependency scan
+        run: |
+          cd mobile-apps/unified-app
+          npm run security:scan
+
+  deploy:
+    needs: [setup, android-build, ios-build, test, security-scan]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: ./artifacts/android
+
+      - name: Download iOS IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-ipa
+          path: ./artifacts/ios
+
+      - name: Deploy to Google Play
+        if: needs.setup.outputs.platform == 'android' || needs.setup.outputs.platform == 'both'
+        run: |
+          # Deploy to Google Play Console
+          echo "Deploying to Google Play Console..."
+
+      - name: Deploy to App Store
+        if: needs.setup.outputs.platform == 'ios' || needs.setup.outputs.platform == 'both'
+        run: |
+          # Deploy to App Store Connect
+          echo "Deploying to App Store Connect..."
+
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          body: |
+            Mobile app release v${{ github.run_number }}
+            
+            ## Changes
+            - Bug fixes and improvements
+            - Security updates
+            - Performance optimizations
+            
+            ## Downloads
+            - Android APK: [Download](https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/app-release.apk)
+            - iOS IPA: [Download](https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/AyazLogistics.ipa)
+          draft: false
+          prerelease: false
+
+      - name: Upload Android APK to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/android/app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload iOS IPA to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/ios/AyazLogistics.ipa
+          asset_name: AyazLogistics.ipa
+          asset_content_type: application/octet-stream

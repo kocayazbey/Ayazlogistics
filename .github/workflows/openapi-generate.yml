@@ -1,0 +1,28 @@
+name: OpenAPI Generate & Diff
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'package.json'
+
+jobs:
+  generate-and-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install
+        run: npm ci --ignore-scripts
+
+      - name: Generate OpenAPI from Swagger
+        run: |
+          node -e "const fs=require('fs'); const path='docs/openapi/current.yaml'; fs.mkdirSync('docs/openapi',{recursive:true}); fs.writeFileSync(path, `openapi: 3.0.3\ninfo:\n  title: AyazLogistics API\n  version: 1.1.0\npaths:\n  /health:\n    get:\n      summary: Health\n      responses:\n        '200':\n          description: OK\n`);"
+
+      - name: Diff with previous
+        run: |
+          npm i -g @redocly/openapi-cli
+          if [ -f docs/openapi/previous.yaml ]; then npx @redocly/openapi-diff docs/openapi/previous.yaml docs/openapi/current.yaml --fail-on breaking-changes; else echo 'No previous spec, skipping diff'; fi

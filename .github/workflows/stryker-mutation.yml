@@ -1,0 +1,33 @@
+name: Stryker Mutation Testing
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  mutation-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Stryker
+        run: npm install -g @stryker-mutator/core
+      
+      - name: Run mutation tests
+        run: |
+          stryker run --config stryker.conf.js
+      
+      - name: Upload mutation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-results
+          path: reports/

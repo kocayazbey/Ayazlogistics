@@ -1,0 +1,43 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backend-servicemonitor
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: ayazlogistics
+      component: backend
+  namespaceSelector:
+    matchNames:
+      - production
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: postgres-podmonitor
+  namespace: database
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: redis-podmonitor
+  namespace: cache
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 30s

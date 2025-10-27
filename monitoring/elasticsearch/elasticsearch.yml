@@ -1,0 +1,95 @@
+cluster.name: ayazlogistics-cluster
+node.name: ayazlogistics-node-1
+
+network.host: 0.0.0.0
+http.port: 9200
+
+discovery.type: single-node
+
+# Memory settings
+bootstrap.memory_lock: true
+
+# Index settings
+action.auto_create_index: false
+action.destructive_requires_name: true
+
+# Security settings
+xpack.security.enabled: false
+xpack.security.transport.ssl.enabled: false
+xpack.security.http.ssl.enabled: false
+
+# Monitoring settings
+xpack.monitoring.collection.enabled: true
+xpack.monitoring.elasticsearch.collection.enabled: true
+
+# Logging settings
+logger.level: INFO
+logger.org.elasticsearch.transport: WARN
+logger.org.elasticsearch.discovery: WARN
+
+# Performance settings
+indices.memory.index_buffer_size: 20%
+indices.breaker.total.limit: 70%
+indices.breaker.fielddata.limit: 40%
+indices.breaker.request.limit: 60%
+
+# Index lifecycle management
+xpack.ilm.enabled: true
+
+# Machine learning
+xpack.ml.enabled: true
+xpack.ml.max_open_jobs: 10
+
+# Watcher
+xpack.watcher.enabled: true
+
+# Alerting
+xpack.alerting.enabled: true
+
+# Index templates
+index.template.default.settings:
+  number_of_shards: 1
+  number_of_replicas: 0
+  refresh_interval: 5s
+  index.lifecycle.name: ayazlogistics-policy
+  index.lifecycle.rollover_alias: ayazlogistics
+
+# Cluster settings
+cluster.routing.allocation.disk.threshold_enabled: true
+cluster.routing.allocation.disk.watermark.low: 85%
+cluster.routing.allocation.disk.watermark.high: 90%
+cluster.routing.allocation.disk.watermark.flood_stage: 95%
+
+# Thread pool settings
+thread_pool.write.queue_size: 1000
+thread_pool.search.queue_size: 1000
+
+# Circuit breaker settings
+indices.breaker.total.use_real_memory: true
+indices.breaker.total.limit: 70%
+indices.breaker.fielddata.limit: 40%
+indices.breaker.request.limit: 60%
+
+# Recovery settings
+cluster.routing.allocation.node_concurrent_recoveries: 2
+cluster.routing.allocation.node_initial_primaries_recoveries: 4
+
+# Snapshot settings
+path.repo: ["/usr/share/elasticsearch/data/backups"]
+
+# Logging configuration
+logging:
+  level: INFO
+  appender:
+    console:
+      type: console
+      layout:
+        type: pattern
+        pattern: "[%d{ISO8601}][%-5p][%-25c{1.}] [%node_name]%marker %.-10000m%n"
+    file:
+      type: dailyRollingFile
+      file: ${path.logs}/ayazlogistics.log
+      datePattern: "'.'yyyy-MM-dd"
+      layout:
+        type: pattern
+        pattern: "[%d{ISO8601}][%-5p][%-25c{1.}] [%node_name]%marker %.-10000m%n"

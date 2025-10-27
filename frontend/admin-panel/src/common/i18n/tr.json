@@ -1,0 +1,110 @@
+{
+  "wms": {
+    "title": "WMS - Depo Yönetim Sistemi",
+    "subtitle": "Depo operasyonlarınızı yönetin ve optimize edin",
+    "inventory": {
+      "title": "Stok Yönetimi",
+      "subtitle": "Depo stoklarınızı yönetin",
+      "addItem": "Ürün Ekle",
+      "export": "Dışarı Aktar",
+      "search": "Ad veya SKU ile ara...",
+      "status": {
+        "inStock": "Stokta",
+        "lowStock": "Düşük Stok",
+        "outOfStock": "Stokta Yok"
+      },
+      "columns": {
+        "sku": "SKU",
+        "name": "Ad",
+        "description": "Açıklama",
+        "quantity": "Miktar",
+        "unitPrice": "Birim Fiyat",
+        "location": "Konum",
+        "status": "Durum",
+        "lastUpdated": "Son Güncelleme"
+      },
+      "summary": {
+        "totalItems": "Toplam Ürün",
+        "inStock": "Stokta",
+        "lowStock": "Düşük Stok",
+        "outOfStock": "Stokta Yok"
+      }
+    },
+    "operations": {
+      "title": "Operasyonlar",
+      "subtitle": "Depo operasyonlarını ve iş akışlarını yönetin",
+      "newOperation": "Yeni Operasyon",
+      "export": "Dışarı Aktar",
+      "columns": {
+        "operationId": "Operasyon ID",
+        "type": "Tür",
+        "status": "Durum",
+        "priority": "Öncelik",
+        "assignedTo": "Atanan",
+        "startTime": "Başlangıç Zamanı",
+        "items": "Ürün Sayısı",
+        "location": "Konum"
+      },
+      "status": {
+        "pending": "Bekliyor",
+        "inProgress": "Devam Ediyor",
+        "completed": "Tamamlandı",
+        "cancelled": "İptal Edildi"
+      },
+      "priority": {
+        "low": "Düşük",
+        "medium": "Orta",
+        "high": "Yüksek"
+      },
+      "summary": {
+        "totalOperations": "Toplam Operasyon",
+        "inProgress": "Devam Eden",
+        "pending": "Bekleyen",
+        "completed": "Tamamlanan"
+      }
+    },
+    "receiving": {
+      "title": "Mal Kabul",
+      "subtitle": "Mal kabul operasyonlarını yönetin",
+      "newReceiving": "Yeni Mal Kabul"
+    },
+    "picking": {
+      "title": "Toplama",
+      "subtitle": "Toplama operasyonlarını yönetin",
+      "newPicking": "Yeni Toplama"
+    },
+    "shipping": {
+      "title": "Sevkiyat",
+      "subtitle": "Sevkiyat operasyonlarını yönetin",
+      "newShipping": "Yeni Sevkiyat"
+    },
+    "navigation": {
+      "quickActions": "Hızlı İşlemler",
+      "quickAccess": "Hızlı Erişim",
+      "recentActivities": "Son Aktiviteler",
+      "warehouseStatus": "Depo Durumu"
+    },
+    "actions": {
+      "view": "Görüntüle",
+      "edit": "Düzenle",
+      "delete": "Sil",
+      "export": "Dışarı Aktar",
+      "add": "Ekle",
+      "create": "Oluştur",
+      "update": "Güncelle",
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "confirm": "Onayla"
+    },
+    "common": {
+      "loading": "Yükleniyor...",
+      "error": "Hata",
+      "success": "Başarılı",
+      "warning": "Uyarı",
+      "info": "Bilgi",
+      "ok": "Tamam",
+      "yes": "Evet",
+      "no": "Hayır"
+    }
+  }
+}

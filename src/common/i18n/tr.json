@@ -1,0 +1,41 @@
+{
+  "common": {
+    "success": "Başarılı",
+    "error": "Hata",
+    "loading": "Yükleniyor...",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "view": "Görüntüle",
+    "create": "Oluştur",
+    "update": "Güncelle",
+    "search": "Ara",
+    "filter": "Filtrele",
+    "export": "Dışa Aktar",
+    "import": "İçe Aktar"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "logout": "Çıkış Yap",
+    "register": "Kayıt Ol",
+    "forgotPassword": "Şifremi Unuttum",
+    "resetPassword": "Şifre Sıfırla",
+    "changePassword": "Şifre Değiştir"
+  },
+  "navigation": {
+    "dashboard": "Ana Sayfa",
+    "customers": "Müşteriler",
+    "orders": "Siparişler",
+    "inventory": "Envanter",
+    "reports": "Raporlar",
+    "settings": "Ayarlar"
+  },
+  "validation": {
+    "required": "Bu alan zorunludur",
+    "email": "Geçerli bir e-posta adresi girin",
+    "phone": "Geçerli bir telefon numarası girin",
+    "minLength": "Minimum uzunluk {{min}} karakterdir",
+    "maxLength": "Maksimum uzunluk {{max}} karakterdir"
+  }
+}

@@ -1,0 +1,417 @@
+# TSDB Configuration for AyazLogistics Telemetry
+# This file configures time series database settings for telemetry data
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tsdb-config
+  namespace: ayazlogistics
+data:
+  # Prometheus configuration
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'ayazlogistics'
+        environment: 'production'
+
+    rule_files:
+      - "/etc/prometheus/rules/*.yml"
+
+    scrape_configs:
+      - job_name: 'ayazlogistics-backend'
+        static_configs:
+          - targets: ['ayazlogistics-backend:3000']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+
+      - job_name: 'ayazlogistics-frontend'
+        static_configs:
+          - targets: ['ayazlogistics-frontend:3001']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+
+      - job_name: 'postgresql'
+        static_configs:
+          - targets: ['postgresql:5432']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+
+      - job_name: 'redis'
+        static_configs:
+          - targets: ['redis:6379']
+        metrics_path: '/metrics'
+        scrape_interval: 30s
+
+  # Retention policy configuration
+  retention-policy.yml: |
+    # High resolution metrics (1m intervals) - 7 days
+    high_resolution:
+      metrics:
+        - "http_requests_total"
+        - "http_request_duration_seconds"
+        - "cpu_usage_percent"
+        - "memory_usage_bytes"
+        - "disk_io_ops"
+        - "network_bytes_total"
+        - "database_connections_active"
+        - "cache_hit_ratio"
+        - "queue_length"
+        - "error_rate"
+      retention: "7d"
+      resolution: "1m"
+
+    # Medium resolution metrics (5m intervals) - 30 days
+    medium_resolution:
+      metrics:
+        - "business_metrics_total"
+        - "user_sessions_active"
+        - "api_calls_total"
+        - "response_time_p95"
+        - "throughput_per_second"
+        - "availability_percent"
+        - "cost_per_hour"
+        - "efficiency_score"
+        - "sla_compliance_percent"
+        - "resource_utilization"
+      retention: "30d"
+      resolution: "5m"
+
+    # Low resolution metrics (1h intervals) - 365 days
+    low_resolution:
+      metrics:
+        - "daily_active_users"
+        - "monthly_revenue"
+        - "quarterly_growth"
+        - "annual_trends"
+        - "seasonal_patterns"
+        - "long_term_trends"
+        - "historical_analysis"
+        - "forecasting_data"
+        - "benchmark_metrics"
+        - "comparative_analysis"
+      retention: "365d"
+      resolution: "1h"
+
+    # Aggregated metrics (1d intervals) - 3 years
+    aggregated:
+      metrics:
+        - "daily_summaries"
+        - "monthly_reports"
+        - "quarterly_analytics"
+        - "annual_summaries"
+        - "trend_analysis"
+        - "pattern_recognition"
+        - "anomaly_detection"
+        - "predictive_analytics"
+        - "business_intelligence"
+        - "strategic_insights"
+      retention: "1095d"
+      resolution: "1d"
+
+    # Business metrics (1h intervals) - 2 years
+    business_metrics:
+      metrics:
+        - "revenue_per_hour"
+        - "orders_processed"
+        - "customer_satisfaction"
+        - "conversion_rate"
+        - "retention_rate"
+        - "churn_rate"
+        - "lifetime_value"
+        - "acquisition_cost"
+        - "profit_margin"
+        - "market_share"
+      retention: "730d"
+      resolution: "1h"
+
+    # Security metrics (1m intervals) - 1 year
+    security_metrics:
+      metrics:
+        - "failed_login_attempts"
+        - "suspicious_activities"
+        - "security_incidents"
+        - "threat_detection"
+        - "vulnerability_scans"
+        - "access_violations"
+        - "data_breaches"
+        - "compliance_violations"
+        - "audit_events"
+        - "security_alerts"
+      retention: "365d"
+      resolution: "1m"
+
+    # Compliance metrics (1d intervals) - 7 years
+    compliance_metrics:
+      metrics:
+        - "gdpr_compliance"
+        - "kvkk_compliance"
+        - "audit_trail"
+        - "data_retention"
+        - "privacy_violations"
+        - "regulatory_reports"
+        - "compliance_score"
+        - "policy_violations"
+        - "legal_requirements"
+        - "regulatory_changes"
+      retention: "2555d"
+      resolution: "1d"
+
+    # Cost metrics (1h intervals) - 3 years
+    cost_metrics:
+      metrics:
+        - "infrastructure_cost"
+        - "cloud_spending"
+        - "resource_cost"
+        - "operational_cost"
+        - "maintenance_cost"
+        - "scaling_cost"
+        - "optimization_savings"
+        - "budget_variance"
+        - "cost_trends"
+        - "roi_metrics"
+      retention: "1095d"
+      resolution: "1h"
+
+    # Performance metrics (5m intervals) - 6 months
+    performance_metrics:
+      metrics:
+        - "response_time"
+        - "throughput"
+        - "latency"
+        - "error_rate"
+        - "availability"
+        - "scalability"
+        - "efficiency"
+        - "optimization"
+        - "bottlenecks"
+        - "performance_trends"
+      retention: "180d"
+      resolution: "5m"
+
+    # UX metrics (1h intervals) - 1 year
+    ux_metrics:
+      metrics:
+        - "user_satisfaction"
+        - "page_load_time"
+        - "user_engagement"
+        - "conversion_funnel"
+        - "user_behavior"
+        - "interface_performance"
+        - "accessibility_score"
+        - "usability_metrics"
+        - "user_feedback"
+        - "experience_quality"
+      retention: "365d"
+      resolution: "1h"
+
+    # Infrastructure metrics (1m intervals) - 3 months
+    infrastructure_metrics:
+      metrics:
+        - "server_health"
+        - "network_performance"
+        - "storage_usage"
+        - "power_consumption"
+        - "environmental_factors"
+        - "hardware_status"
+        - "system_alerts"
+        - "maintenance_events"
+        - "capacity_planning"
+        - "infrastructure_trends"
+      retention: "90d"
+      resolution: "1m"
+
+    # Application metrics (1m intervals) - 1 month
+    application_metrics:
+      metrics:
+        - "application_health"
+        - "feature_usage"
+        - "user_actions"
+        - "business_logic"
+        - "data_processing"
+        - "integration_status"
+        - "deployment_health"
+        - "version_performance"
+        - "feature_adoption"
+        - "application_trends"
+      retention: "30d"
+      resolution: "1m"
+
+    # Network metrics (1m intervals) - 1 month
+    network_metrics:
+      metrics:
+        - "bandwidth_usage"
+        - "packet_loss"
+        - "latency_network"
+        - "connection_quality"
+        - "traffic_patterns"
+        - "protocol_analysis"
+        - "security_events"
+        - "network_alerts"
+        - "performance_issues"
+        - "optimization_opportunities"
+      retention: "30d"
+      resolution: "1m"
+
+    # Storage metrics (1m intervals) - 1 month
+    storage_metrics:
+      metrics:
+        - "disk_usage"
+        - "io_operations"
+        - "storage_performance"
+        - "backup_status"
+        - "recovery_time"
+        - "data_integrity"
+        - "storage_alerts"
+        - "capacity_planning"
+        - "optimization_metrics"
+        - "storage_trends"
+      retention: "30d"
+      resolution: "1m"
+
+    # Custom metrics (1h intervals) - 1 year
+    custom_metrics:
+      metrics:
+        - "business_kpis"
+        - "operational_metrics"
+        - "strategic_indicators"
+        - "tactical_metrics"
+        - "operational_indicators"
+        - "performance_indicators"
+        - "quality_metrics"
+        - "efficiency_metrics"
+        - "effectiveness_metrics"
+        - "outcome_metrics"
+      retention: "365d"
+      resolution: "1h"
+
+  # Alerting rules
+  alerting-rules.yml: |
+    groups:
+      - name: ayazlogistics-alerts
+        rules:
+          - alert: HighErrorRate
+            expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High error rate detected"
+              description: "Error rate is {{ $value }} errors per second"
+
+          - alert: HighResponseTime
+            expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High response time detected"
+              description: "95th percentile response time is {{ $value }} seconds"
+
+          - alert: DatabaseConnectionPoolExhausted
+            expr: database_connections_active / database_connections_max > 0.9
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Database connection pool nearly exhausted"
+              description: "Connection pool usage is {{ $value }}%"
+
+          - alert: CacheHitRatioLow
+            expr: cache_hit_ratio < 0.8
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Low cache hit ratio"
+              description: "Cache hit ratio is {{ $value }}%"
+
+          - alert: QueueLengthHigh
+            expr: queue_length > 1000
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High queue length"
+              description: "Queue length is {{ $value }}"
+
+          - alert: DiskSpaceLow
+            expr: (disk_usage_bytes / disk_capacity_bytes) > 0.9
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Disk space low"
+              description: "Disk usage is {{ $value }}%"
+
+          - alert: MemoryUsageHigh
+            expr: (memory_usage_bytes / memory_total_bytes) > 0.9
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High memory usage"
+              description: "Memory usage is {{ $value }}%"
+
+          - alert: CPUUsageHigh
+            expr: cpu_usage_percent > 90
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU usage"
+              description: "CPU usage is {{ $value }}%"
+
+          - alert: NetworkLatencyHigh
+            expr: network_latency_seconds > 0.5
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High network latency"
+              description: "Network latency is {{ $value }} seconds"
+
+          - alert: ServiceDown
+            expr: up == 0
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Service is down"
+              description: "Service {{ $labels.job }} is down"
+
+  # Recording rules
+  recording-rules.yml: |
+    groups:
+      - name: ayazlogistics-recording
+        rules:
+          - record: ayazlogistics:http_requests:rate5m
+            expr: rate(http_requests_total[5m])
+
+          - record: ayazlogistics:http_request_duration:histogram_quantile
+            expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+
+          - record: ayazlogistics:database_connections:ratio
+            expr: database_connections_active / database_connections_max
+
+          - record: ayazlogistics:cache_hit:ratio
+            expr: cache_hits_total / (cache_hits_total + cache_misses_total)
+
+          - record: ayazlogistics:queue_length:current
+            expr: queue_length
+
+          - record: ayazlogistics:disk_usage:ratio
+            expr: disk_usage_bytes / disk_capacity_bytes
+
+          - record: ayazlogistics:memory_usage:ratio
+            expr: memory_usage_bytes / memory_total_bytes
+
+          - record: ayazlogistics:cpu_usage:current
+            expr: cpu_usage_percent
+
+          - record: ayazlogistics:network_latency:current
+            expr: network_latency_seconds
+
+          - record: ayazlogistics:service:up
+            expr: up

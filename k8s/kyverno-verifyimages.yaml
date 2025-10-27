@@ -1,0 +1,30 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-images-cosign
+spec:
+  validationFailureAction: enforce
+  background: true
+  webhookTimeoutSeconds: 30
+  failurePolicy: Fail
+  rules:
+  - name: verify-signatures
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - production
+    verifyImages:
+    - imageReferences:
+      - ghcr.io/ayazlogistics/*
+      attestors:
+      - entries:
+        - keys:
+            publicKeys: |
+              -----BEGIN PUBLIC KEY-----
+              MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtestplaceholder
+              -----END PUBLIC KEY-----
+      repositories:
+      - name: ghcr.io/ayazlogistics

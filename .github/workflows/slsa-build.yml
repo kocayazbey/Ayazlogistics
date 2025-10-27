@@ -1,0 +1,92 @@
+name: SLSA Build
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  slsa-build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Generate SLSA provenance
+        uses: slsa-framework/slsa-github-actions/actions/build@v1.6.0
+        with:
+          base64-subjects: true
+          upload-assets: true
+          upload-assets-files: |
+            dist/**/*
+            frontend/admin-panel/dist/**/*
+            package.json
+            package-lock.json
+
+      - name: Sign build artifacts
+        run: |
+          # Create detached signature for build artifacts
+          gpg --armor --detach-sign dist/main.js
+          gpg --armor --detach-sign frontend/admin-panel/dist/index.html
+          
+          # Create checksums
+          sha256sum dist/**/* > dist/checksums.sha256
+          sha256sum frontend/admin-panel/dist/**/* >> dist/checksums.sha256
+
+      - name: Upload provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: slsa-provenance
+          path: |
+            dist/
+            frontend/admin-panel/dist/
+            .slsa/
+          retention-days: 30
+
+      - name: Verify SLSA provenance
+        run: |
+          # Verify the generated provenance
+          slsa-verifier verify-artifact \
+            --provenance-path .slsa/provenance.json \
+            --source-uri github.com/${{ github.repository }} \
+            --source-tag ${{ github.ref_name }} \
+            dist/
+
+      - name: Create attestation
+        run: |
+          # Create in-toto attestation
+          in-toto-attestation create \
+            --predicate-type https://slsa.dev/provenance/v1 \
+            --predicate .slsa/provenance.json \
+            --private-key .slsa/private-key.pem \
+            --out attestation.json
+
+      - name: Upload attestation
+        uses: actions/upload-artifact@v4
+        with:
+          name: slsa-attestation
+          path: attestation.json
+          retention-days: 30

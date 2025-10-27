@@ -1,0 +1,243 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "AI Modelleri - Performans Dashboard",
+    "tags": ["ai", "ml", "models", "performance"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Model Doğruluk Oranları",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "ayazlogistics_ai_model_accuracy{model_type=\"pricing\"}",
+            "refId": "A",
+            "legendFormat": "Fiyatlandırma Modeli"
+          },
+          {
+            "expr": "ayazlogistics_ai_model_accuracy{model_type=\"demand_forecasting\"}",
+            "refId": "B",
+            "legendFormat": "Talep Tahmini Modeli"
+          },
+          {
+            "expr": "ayazlogistics_ai_model_accuracy{model_type=\"route_optimization\"}",
+            "refId": "C",
+            "legendFormat": "Rota Optimizasyon Modeli"
+          },
+          {
+            "expr": "ayazlogistics_ai_model_accuracy{model_type=\"predictive_maintenance\"}",
+            "refId": "D",
+            "legendFormat": "Öngörülü Bakım Modeli"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Model Eğitim Süreleri",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "ayazlogistics_ai_training_duration_seconds{model_type=\"pricing\"}",
+            "refId": "A",
+            "legendFormat": "Fiyatlandırma"
+          },
+          {
+            "expr": "ayazlogistics_ai_training_duration_seconds{model_type=\"demand_forecasting\"}",
+            "refId": "B",
+            "legendFormat": "Talep Tahmini"
+          },
+          {
+            "expr": "ayazlogistics_ai_training_duration_seconds{model_type=\"route_optimization\"}",
+            "refId": "C",
+            "legendFormat": "Rota Optimizasyon"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Tahmin Başarı Oranları",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "ayazlogistics_ai_prediction_success_rate{model_type=\"pricing\"}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 70
+                },
+                {
+                  "color": "green",
+                  "value": 90
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Model Kullanım İstatistikleri",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(ayazlogistics_ai_predictions_total[5m])",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 6,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "Model Hata Oranları",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(ayazlogistics_ai_prediction_errors_total[5m])",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 18,
+          "y": 8
+        }
+      },
+      {
+        "id": 6,
+        "title": "Model Kaynak Kullanımı",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "ayazlogistics_ai_model_cpu_usage_percent",
+            "refId": "A",
+            "legendFormat": "CPU Kullanımı"
+          },
+          {
+            "expr": "ayazlogistics_ai_model_memory_usage_bytes",
+            "refId": "B",
+            "legendFormat": "Bellek Kullanımı"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 7,
+        "title": "Model Performans Metrikleri",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "ayazlogistics_ai_model_metrics",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 30,
+    "version": 1,
+    "links": []
+  }
+}

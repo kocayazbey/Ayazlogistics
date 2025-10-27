@@ -1,0 +1,128 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ayazlogistics-config
+  namespace: production
+  labels:
+    app: ayazlogistics
+data:
+  DATABASE_HOST: "postgres-service"
+  DATABASE_PORT: "5432"
+  DATABASE_USERNAME: "postgres"
+  DATABASE_NAME: "ayazlogistics"
+  DATABASE_SSL: "false"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  APP_NAME: "AyazLogistics"
+  APP_URL: "https://api.ayazlogistics.com"
+  API_PREFIX: "api"
+  CORS_ORIGIN: "https://admin.ayazlogistics.com,https://app.ayazlogistics.com"
+  CORS_CREDENTIALS: "true"
+  NODE_ENV: "production"
+  TZ: "Europe/Istanbul"
+  DEFAULT_LANGUAGE: "tr"
+  DEFAULT_CURRENCY: "TRY"
+  ENABLE_SWAGGER: "false"
+  ENABLE_COMPRESSION: "true"
+  ENABLE_AI_FEATURES: "false"
+  ENABLE_BLOCKCHAIN: "false"
+  ENABLE_IOT_SENSORS: "false"
+  ENABLE_GRAPHQL: "false"
+  DEBUG_MODE: "false"
+  ENABLE_QUERY_LOGGING: "false"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ayazlogistics-nginx-config
+  namespace: production
+data:
+  nginx.conf: |
+    worker_processes auto;
+    events {
+      worker_connections 4096;
+    }
+    http {
+      upstream backend {
+        least_conn;
+        server backend-1:3000;
+        server backend-2:3000;
+        server backend-3:3000;
+      }
+      server {
+        listen 80;
+        location / {
+          proxy_pass http://backend;
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ayazlogistics-secrets
+  namespace: production
+type: Opaque
+stringData:
+  DATABASE_PASSWORD: "change_this_password"
+  JWT_SECRET: "change_this_jwt_secret_minimum_32_characters_long"
+  JWT_REFRESH_SECRET: "change_this_jwt_refresh_secret_minimum_32_characters_long"
+  SESSION_SECRET: "change_this_session_secret_minimum_32_characters_long"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ayazlogistics
+  namespace: production
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ayazlogistics-role
+  namespace: production
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ayazlogistics-rolebinding
+  namespace: production
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ayazlogistics-role
+subjects:
+- kind: ServiceAccount
+  name: ayazlogistics
+  namespace: production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: production
+spec:
+  selector:
+    app: postgres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: production
+spec:
+  selector:
+    app: redis
+  ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
+

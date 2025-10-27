@@ -1,0 +1,137 @@
+server.name: ayazlogistics-kibana
+server.host: 0.0.0.0
+server.port: 5601
+
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+elasticsearch.username: elastic
+elasticsearch.password: changeme
+
+# Security settings
+xpack.security.enabled: false
+xpack.encryptedSavedObjects.encryptionKey: "ayazlogistics-encryption-key-32-chars"
+
+# Monitoring settings
+xpack.monitoring.ui.container.elasticsearch.enabled: true
+xpack.monitoring.collection.enabled: true
+
+# Logging settings
+logging.appenders:
+  file:
+    type: file
+    fileName: /usr/share/kibana/logs/ayazlogistics.log
+    layout:
+      type: json
+  console:
+    type: console
+    layout:
+      type: pattern
+      pattern: "[%d{ISO8601}][%-5p][%-25c{1.}] %marker %.-10000m%n"
+
+logging.loggers:
+  - name: ayazlogistics
+    level: info
+    appenders: [file, console]
+
+# Index patterns
+kibana.defaultAppId: discover
+
+# Saved objects
+kibana.index: ".kibana-ayazlogistics"
+
+# Data views
+data.search.aggs.shardDelay.enabled: true
+data.search.aggs.shardDelay.delay: 0
+
+# Dashboard settings
+dashboard.defaultDarkMode: false
+
+# Feature flags
+features:
+  savedObjectsManagement:
+    enabled: true
+  indexPatterns:
+    enabled: true
+  discover:
+    enabled: true
+  dashboard:
+    enabled: true
+  visualize:
+    enabled: true
+  dev_tools:
+    enabled: true
+  advancedSettings:
+    enabled: true
+  indexManagement:
+    enabled: true
+  savedObjectsManagement:
+    enabled: true
+
+# Canvas settings
+canvas.enabled: true
+
+# Maps settings
+maps.enabled: true
+
+# Machine learning
+xpack.ml.enabled: true
+
+# Watcher
+xpack.watcher.enabled: true
+
+# Alerting
+xpack.alerting.enabled: true
+
+# Reporting
+xpack.reporting.enabled: true
+xpack.reporting.kibanaServer.hostname: kibana
+xpack.reporting.kibanaServer.port: 5601
+
+# Spaces
+xpack.spaces.enabled: true
+
+# Timeline
+timeline.enabled: true
+
+# Graph
+graph.enabled: true
+
+# APM
+xpack.apm.enabled: true
+
+# Infrastructure
+xpack.infra.enabled: true
+
+# Logs
+xpack.logs.enabled: true
+
+# Uptime
+xpack.uptime.enabled: true
+
+# Security
+xpack.security.enabled: false
+
+# Encryption
+xpack.encryptedSavedObjects.encryptionKey: "ayazlogistics-encryption-key-32-chars"
+
+# Telemetry
+telemetry.enabled: true
+telemetry.allowChangingOptInStatus: true
+
+# Performance
+performance.maxConcurrentConnections: 20
+performance.maxPayloadBytes: 1048576
+
+# Server settings
+server.maxPayloadBytes: 1048576
+server.compression.enabled: true
+server.compression.referrerWhitelist: ["^https?://localhost(:[0-9]+)?$"]
+
+# UI settings
+uiSettings.overrides:
+  "defaultRoute": "/app/discover"
+  "discover:searchOnPageLoad": true
+  "discover:sampleSize": 500
+  "discover:sort:default": "@timestamp:desc"
+  "timepicker:refreshIntervalDefaults": "30s"
+  "timepicker:timeDefaults": "{\"from\":\"now-1h\",\"to\":\"now\"}"
+  "defaultIndex": "ayazlogistics-*"

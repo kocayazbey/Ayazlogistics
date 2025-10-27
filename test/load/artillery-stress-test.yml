@@ -1,0 +1,147 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 60
+      arrivalRate: 10
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 50
+      name: "Ramp up load"
+    - duration: 300
+      arrivalRate: 100
+      name: "Sustained load"
+    - duration: 120
+      arrivalRate: 200
+      name: "Stress test"
+    - duration: 60
+      arrivalRate: 10
+      name: "Cool down"
+  defaults:
+    headers:
+      Content-Type: 'application/json'
+      Authorization: 'Bearer test-api-key'
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+  ensure:
+    p95: 2000
+    p99: 5000
+    maxErrorRate: 0.1
+
+scenarios:
+  - name: "Route Optimization Load Test"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/v1/ai/optimize-route"
+          json:
+            origin:
+              lat: 40.7128
+              lng: -74.0060
+            destinations:
+              - lat: 40.7589
+                lng: -73.9851
+                priority: 1
+              - lat: 40.6892
+                lng: -74.0445
+                priority: 2
+              - lat: 40.7505
+                lng: -73.9934
+                priority: 3
+            constraints:
+              maxDistance: 100
+              maxTime: 2
+          capture:
+            - json: "$.optimizedRoute"
+              as: "route"
+          expect:
+            - statusCode: 200
+            - hasProperty: "optimizedRoute"
+            - hasProperty: "totalDistance"
+            - hasProperty: "efficiency"
+
+  - name: "Demand Forecasting Load Test"
+    weight: 25
+    flow:
+      - post:
+          url: "/api/v1/ai/forecast-demand"
+          json:
+            sku: "PROD-001"
+            historicalData: "{{ $randomInt(50, 200) }}"
+            horizon: 7
+            modelType: "lstm"
+            includeConfidence: true
+          capture:
+            - json: "$.forecast"
+              as: "forecast"
+          expect:
+            - statusCode: 200
+            - hasProperty: "forecast"
+            - hasProperty: "confidence"
+
+  - name: "AI Insights Load Test"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/v1/ai/generate-insights"
+          json:
+            data:
+              shipments:
+                total: "{{ $randomInt(500, 2000) }}"
+                onTime: "{{ $randomInt(400, 1800) }}"
+                delayed: "{{ $randomInt(10, 200) }}"
+              warehouses:
+                utilization: "{{ $randomFloat(0.5, 1.0) }}"
+                capacity: 10000
+                throughput: "{{ $randomInt(200, 800) }}"
+              routes:
+                averageDistance: "{{ $randomFloat(20, 100) }}"
+                averageTime: "{{ $randomFloat(1, 5) }}"
+                fuelEfficiency: "{{ $randomFloat(0.5, 1.0) }}"
+              customers:
+                satisfaction: "{{ $randomFloat(3.0, 5.0) }}"
+                complaints: "{{ $randomInt(0, 50) }}"
+                retention: "{{ $randomFloat(0.7, 1.0) }}"
+          capture:
+            - json: "$.summary"
+              as: "insights"
+          expect:
+            - statusCode: 200
+            - hasProperty: "summary"
+            - hasProperty: "keyInsights"
+
+  - name: "Database Operations Load Test"
+    weight: 15
+    flow:
+      - get:
+          url: "/api/v1/vehicles"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/v1/drivers"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/v1/routes"
+          expect:
+            - statusCode: 200
+
+  - name: "Authentication Load Test"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "test@example.com"
+            password: "testpassword"
+          expect:
+            - statusCode: [200, 401]
+
+  - name: "Health Check Load Test"
+    weight: 5
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+            - hasProperty: "status"

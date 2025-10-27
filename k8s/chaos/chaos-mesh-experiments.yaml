@@ -1,0 +1,61 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: kill-backend-pod
+  namespace: production
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - production
+    labelSelectors:
+      app: ayazlogistics
+      component: backend
+  duration: '60s'
+  gracePeriod: 0
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: delay-db-network
+  namespace: production
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - production
+    labelSelectors:
+      app: ayazlogistics
+      component: backend
+  delay:
+    latency: '200ms'
+    jitter: '50ms'
+  direction: to
+  target:
+    selector:
+      namespaces:
+        - production
+      labelSelectors:
+        app: postgres
+    mode: all
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: cpu-stress-backend
+  namespace: production
+spec:
+  mode: one
+  selector:
+    namespaces:
+      - production
+    labelSelectors:
+      app: ayazlogistics
+      component: backend
+  stressors:
+    cpu:
+      workers: 2
+      load: 80
+  duration: '120s'

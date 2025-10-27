@@ -1,0 +1,17 @@
+apiVersion: v2
+name: ayazlogistics
+description: Enterprise Logistics Management Platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - logistics
+  - tms
+  - wms
+  - erp
+maintainers:
+  - name: AyazLogistics Team
+    email: dev@ayazlogistics.com
+sources:
+  - https://github.com/ayazlogistics/platform
+

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ayazlogistics-config
+  namespace: production
+  labels:
+    app: ayazlogistics
+
+data:
+  api.prefix: "/api/v1"
+  health.prefix: "/health"
+  session.affinity: "ClientIP"
+

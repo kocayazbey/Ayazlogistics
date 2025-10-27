@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: production
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: pg-backup
+            image: ghcr.io/ayazlogistics/pg-backup:1.0.0
+            envFrom:
+            - secretRef:
+                name: ayazlogistics-secrets
+            args: ["/scripts/backup.sh"]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-restore-validate
+  namespace: production
+spec:
+  schedule: "0 4 * * 0"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: pg-restore-validate
+            image: ghcr.io/ayazlogistics/pg-restore:1.0.0
+            envFrom:
+            - secretRef:
+                name: ayazlogistics-secrets
+            args: ["/scripts/restore-validate.sh"]

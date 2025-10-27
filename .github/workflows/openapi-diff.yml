@@ -1,0 +1,32 @@
+name: OpenAPI Breaking Change Check
+
+on:
+  pull_request:
+    paths:
+      - 'docs/openapi/**.yaml'
+      - 'docs/openapi/**.yml'
+      - 'src/**'
+
+jobs:
+  check-breaking-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install openapi-diff
+        run: |
+          npm i -g @redocly/openapi-cli
+
+      - name: Compute breaking changes
+        run: |
+          if [ ! -f docs/openapi/current.yaml ] || [ ! -f docs/openapi/previous.yaml ]; then
+            echo "No OpenAPI specs to compare. Skipping." && exit 0
+          fi
+          npx @redocly/openapi-cli lint docs/openapi/current.yaml
+          npx @redocly/openapi-diff docs/openapi/previous.yaml docs/openapi/current.yaml --fail-on breaking-changes

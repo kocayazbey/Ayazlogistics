@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cdn-config
+  namespace: production
+data:
+  cloudflare.conf: |
+    # CloudFlare CDN Configuration
+    # Apply via CloudFlare Dashboard or Terraform
+    
+    # Page Rules
+    # 1. Cache Everything for static assets
+    #    URL: cdn.ayazlogistics.com/static/*
+    #    Settings:
+    #      - Cache Level: Cache Everything
+    #      - Edge Cache TTL: 1 month
+    #      - Browser Cache TTL: 1 year
+    
+    # 2. Bypass cache for API
+    #    URL: api.ayazlogistics.com/*
+    #    Settings:
+    #      - Cache Level: Bypass
+    
+    # 3. Cache images
+    #    URL: cdn.ayazlogistics.com/images/*
+    #    Settings:
+    #      - Cache Level: Cache Everything
+    #      - Polish: Lossless
+    #      - Mirage: On
+    
+    # Security Settings
+    # - SSL/TLS: Full (strict)
+    # - Always Use HTTPS: On
+    # - Automatic HTTPS Rewrites: On
+    # - Minimum TLS Version: 1.2
+    # - TLS 1.3: On
+    # - HSTS: Enabled (max-age=31536000, includeSubDomains, preload)
+    
+    # Performance Settings
+    # - Brotli: On
+    # - HTTP/2: On
+    # - HTTP/3 (QUIC): On
+    # - Early Hints: On
+    # - Rocket Loader: Off (for compatibility)
+    
+    # Firewall Rules
+    # - Rate Limiting: 100 req/min per IP
+    # - Challenge passage: 30 seconds
+    # - Block threats score > 50
+    
+    # Workers (Edge Compute)
+    # - Image optimization worker
+    # - API response compression
+    # - Geo-routing for multi-region
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-cloudfront-config
+  namespace: production
+data:
+  distribution.json: |
+    {
+      "DistributionConfig": {
+        "CallerReference": "ayazlogistics-2025",
+        "Aliases": {
+          "Quantity": 1,
+          "Items": ["cdn.ayazlogistics.com"]
+        },
+        "DefaultRootObject": "index.html",
+        "Origins": {
+          "Quantity": 2,
+          "Items": [
+            {
+              "Id": "S3-ayaz-static",
+              "DomainName": "ayaz-static.s3.amazonaws.com",
+              "S3OriginConfig": {
+                "OriginAccessIdentity": ""
+              }
+            },
+            {
+              "Id": "API-origin",
+              "DomainName": "api.ayazlogistics.com",
+              "CustomOriginConfig": {
+                "HTTPPort": 80,
+                "HTTPSPort": 443,
+                "OriginProtocolPolicy": "https-only",
+                "OriginSSLProtocols": {
+                  "Quantity": 2,
+                  "Items": ["TLSv1.2", "TLSv1.3"]
+                }
+              }
+            }
+          ]
+        },
+        "DefaultCacheBehavior": {
+          "TargetOriginId": "S3-ayaz-static",
+          "ViewerProtocolPolicy": "redirect-to-https",
+          "AllowedMethods": {
+            "Quantity": 2,
+            "Items": ["GET", "HEAD"],
+            "CachedMethods": {
+              "Quantity": 2,
+              "Items": ["GET", "HEAD"]
+            }
+          },
+          "Compress": true,
+          "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+          "MinTTL": 0,
+          "DefaultTTL": 86400,
+          "MaxTTL": 31536000
+        },
+        "CacheBehaviors": {
+          "Quantity": 1,
+          "Items": [
+            {
+              "PathPattern": "/api/*",
+              "TargetOriginId": "API-origin",
+              "ViewerProtocolPolicy": "https-only",
+              "AllowedMethods": {
+                "Quantity": 7,
+                "Items": ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+              },
+              "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+              "Compress": true
+            }
+          ]
+        },
+        "Enabled": true,
+        "ViewerCertificate": {
+          "ACMCertificateArn": "arn:aws:acm:us-east-1:ACCOUNT:certificate/xxx",
+          "SSLSupportMethod": "sni-only",
+          "MinimumProtocolVersion": "TLSv1.2_2021"
+        },
+        "HttpVersion": "http2and3",
+        "PriceClass": "PriceClass_100"
+      }
+    }
+

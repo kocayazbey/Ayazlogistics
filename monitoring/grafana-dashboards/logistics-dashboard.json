@@ -1,0 +1,60 @@
+{
+  "dashboard": {
+    "title": "AyazLogistics - Operational Dashboard",
+    "tags": ["logistics", "operations"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Active Vehicles",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(vehicle_status{status=\"active\"})"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "API Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Response Time (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Database Connections",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "active_connections{type=\"database\"}"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Cache Hit Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(cache_operations_total{operation=\"hit\"}[5m]) / rate(cache_operations_total[5m]) * 100"
+          }
+        ]
+      }
+    ]
+  }
+}
+

@@ -1,0 +1,290 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Primary
+  postgres-primary:
+    image: postgres:16-alpine
+    container_name: ayaz-postgres-primary
+    environment:
+      POSTGRES_DB: ayazlogistics
+      POSTGRES_USER: ayazuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=tr_TR.UTF-8"
+    volumes:
+      - postgres-primary-data:/var/lib/postgresql/data
+      - ./init-primary.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - ayaz-network
+    restart: unless-stopped
+    command: >
+      postgres
+      -c shared_buffers=2GB
+      -c effective_cache_size=6GB
+      -c maintenance_work_mem=512MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=64MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+      -c max_worker_processes=4
+      -c max_parallel_workers_per_gather=2
+      -c max_parallel_workers=4
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ayazuser -d ayazlogistics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Read Replica
+  postgres-replica:
+    image: postgres:16-alpine
+    container_name: ayaz-postgres-replica
+    environment:
+      POSTGRES_DB: ayazlogistics
+      POSTGRES_USER: ayazuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGUSER: ayazuser
+    volumes:
+      - postgres-replica-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - ayaz-network
+    restart: unless-stopped
+    depends_on:
+      - postgres-primary
+    command: >
+      postgres
+      -c primary_conninfo='host=postgres-primary port=5432 user=ayazuser password=${POSTGRES_PASSWORD}'
+      -c primary_slot_name=replica_slot
+
+  # Redis Cluster
+  redis-master:
+    image: redis:7-alpine
+    container_name: ayaz-redis-master
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 2gb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-master-data:/data
+    networks:
+      - ayaz-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-replica:
+    image: redis:7-alpine
+    container_name: ayaz-redis-replica
+    command: redis-server --slaveof redis-master 6379 --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD}
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-replica-data:/data
+    networks:
+      - ayaz-network
+    restart: unless-stopped
+    depends_on:
+      - redis-master
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: ayaz-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - xpack.security.enabled=false
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - ayaz-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ayaz-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ayazuser
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - ayaz-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Backend API (Multiple instances for load balancing)
+  backend-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ayaz-backend-1
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://ayazuser:${POSTGRES_PASSWORD}@postgres-primary:5432/ayazlogistics
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis-master:6379
+      RABBITMQ_URL: amqp://ayazuser:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      ELASTICSEARCH_NODE: http://elasticsearch:9200
+      JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ayaz-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  backend-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ayaz-backend-2
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://ayazuser:${POSTGRES_PASSWORD}@postgres-primary:5432/ayazlogistics
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis-master:6379
+      RABBITMQ_URL: amqp://ayazuser:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      ELASTICSEARCH_NODE: http://elasticsearch:9200
+      JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ayaz-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  # NGINX Load Balancer
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: ayaz-nginx
+    volumes:
+      - ./nginx/nginx-production.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - ayaz-network
+    depends_on:
+      - backend-1
+      - backend-2
+    restart: unless-stopped
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.49.0
+    container_name: ayaz-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "9090:9090"
+    networks:
+      - ayaz-network
+    restart: unless-stopped
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:10.3.0
+    container_name: ayaz-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - ayaz-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Backup Service
+  backup:
+    image: postgres:16-alpine
+    container_name: ayaz-backup
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    command: >
+      sh -c "
+        while true; do
+          pg_dump -h postgres-primary -U ayazuser -d ayazlogistics | gzip > /backups/backup-$(date +%Y%m%d-%H%M%S).sql.gz
+          find /backups -name 'backup-*.sql.gz' -mtime +7 -delete
+          sleep 86400
+        done
+      "
+    networks:
+      - ayaz-network
+    depends_on:
+      - postgres-primary
+    restart: unless-stopped
+
+networks:
+  ayaz-network:
+    driver: bridge
+
+volumes:
+  postgres-primary-data:
+  postgres-replica-data:
+  redis-master-data:
+  redis-replica-data:
+  elasticsearch-data:
+  rabbitmq-data:
+  prometheus-data:
+  grafana-data:
+
