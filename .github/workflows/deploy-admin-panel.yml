@@ -34,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend/admin-panel
-        run: npm ci
+        run: npm install
 
       - name: Build admin panel
         working-directory: ./frontend/admin-panel
