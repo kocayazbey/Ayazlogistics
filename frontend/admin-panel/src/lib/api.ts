@@ -1,6 +1,18 @@
 import axios from 'axios';
+import { config, isMockMode } from './config';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+// Determine API URL based on environment
+const getApiUrl = () => {
+  // In mock mode, return a mock API endpoint
+  if (isMockMode) {
+    return '/api/mock';
+  }
+  
+  // Use environment variable or default
+  return config.apiUrl || 'http://localhost:3000/api/v1';
+};
+
+const API_BASE_URL = getApiUrl();
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -8,6 +20,14 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Mock data interceptor for preview mode
+if (isMockMode) {
+  api.interceptors.request.use((config) => {
+    console.log('🧪 Mock Mode: Using simulated API responses');
+    return config;
+  });
+}
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');

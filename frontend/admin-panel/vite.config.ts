@@ -18,4 +18,5 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  base: process.env.BASE_URL || '/',
 })

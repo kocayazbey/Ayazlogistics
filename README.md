@@ -1,5 +1,8 @@
 # AyazLogistics - Comprehensive Logistics Management System
 
+[![Deployment Status](https://img.shields.io/badge/Status-Deployed-success)](https://kocayazbey.github.io/Ayazlogistics/)
+[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-View%20Admin%20Panel-blue)](https://kocayazbey.github.io/Ayazlogistics/)
+
 ## 🚀 Overview
 
 AyazLogistics is a comprehensive, enterprise-grade logistics management system built with modern technologies and best practices. The system provides end-to-end logistics solutions with advanced security, monitoring, and scalability features.
@@ -273,6 +276,61 @@ The API documentation is available at `/api` when running the application. It in
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🌐 Deployment & Preview
+
+### Admin Panel Preview
+
+Admin paneli GitHub üzerinden görüntülemek için:
+
+**Seçenek 1: Vercel (Önerilen - Ücretsiz)**
+```bash
+# 1. Vercel hesabı oluştur: https://vercel.com
+# 2. GitHub repo'yu bağla
+# 3. Root directory: frontend/admin-panel
+# 4. Build command: npm run build
+# 5. Output directory: dist
+```
+
+**Seçenek 2: Netlify**
+```bash
+# 1. Netlify hesabı oluştur: https://netlify.com
+# 2. GitHub repo'yu bağla
+# 3. Build settings:
+#    - Base directory: frontend/admin-panel
+#    - Build command: npm run build
+#    - Publish directory: dist
+```
+
+**Seçenek 3: GitHub Pages (Statik)**
+```bash
+cd frontend/admin-panel
+npm run build
+# dist klasörünü GitHub Pages'e yükle
+```
+
+**Yerel Çalıştırma:**
+```bash
+cd frontend/admin-panel
+npm install
+npm run dev
+# http://localhost:3001 adresinde açılır
+```
+
+### Backend API Deployment
+
+Backend'i deploy etmek için:
+```bash
+# Docker ile
+docker-compose up -d
+
+# Kubernetes ile
+kubectl apply -f k8s/
+
+# Manuel
+npm run build
+npm run start:prod
+```
 
 ## 🆘 Support
 

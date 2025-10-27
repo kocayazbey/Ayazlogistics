@@ -3,11 +3,12 @@ import { NotificationsController } from './notifications.controller';
 import { EmailService } from './email/email.service';
 import { SMSService } from './sms/sms.service';
 import { WhatsAppService } from './whatsapp/whatsapp.service';
-import { NotificationQueueService } from './queue/notification.queue.ts';
 import { NotificationsService } from '../logistics/ayaz-user-portal/notifications/notifications.service';
 import { DatabaseModule } from '../../core/database/database.module';
 import { RealtimeModule } from '../../realtime/realtime.module';
 import { IntegrationModule } from '../shared/integration/integration.module';
+// NotificationQueueService disabled until Bull queue is configured
+// import { NotificationQueueService } from './queue/notification.queue';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule, IntegrationModule],
@@ -17,14 +18,14 @@ import { IntegrationModule } from '../shared/integration/integration.module';
     EmailService,
     SMSService,
     WhatsAppService,
-    NotificationQueueService,
+    // NotificationQueueService, // Disabled - Bull queue not configured
   ],
   exports: [
     NotificationsService,
     EmailService,
     SMSService,
     WhatsAppService,
-    NotificationQueueService,
+    // NotificationQueueService, // Disabled - Bull queue not configured
   ],
 })
 export class NotificationsModule {}

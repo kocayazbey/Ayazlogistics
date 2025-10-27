@@ -4,7 +4,7 @@ import { DRIZZLE_ORM } from '../../database/database.constants';
 import { StandardizedDatabaseService } from '../../database/standardized-database.service';
 import { ThreeDSecureService } from './three-d-secure.service';
 import { PaymentProcessorService, PaymentRequest, PaymentResponse } from './payment-processor.service';
-// Temporarily commenting out AI fraud detection service import
+// AI fraud detection service is disabled - will be enabled when AI module is fixed
 // import { FraudDetectionService } from '../../ai/fraud-detection.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { VerifyPaymentDto } from './dto/verify-payment.dto';

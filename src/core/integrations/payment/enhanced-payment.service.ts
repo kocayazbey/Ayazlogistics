@@ -58,7 +58,7 @@ export class EnhancedPaymentService {
   constructor(
     private readonly iyzicoService: IyzicoService,
     private readonly stripeService: StripeService,
-    // private readonly fraudDetectionService: FraudDetectionService, // Temporarily disabled
+    // private readonly fraudDetectionService: FraudDetectionService, // Disabled - AI module not active
     private readonly paymentStatusService: PaymentStatusService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}

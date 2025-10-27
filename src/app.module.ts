@@ -43,12 +43,12 @@ import { VehicleTrackingModule } from './modules/shared/vehicle-tracking/vehicle
 import { AccountingModule } from './modules/shared/accounting/accounting.module';
 import { SupplierIntegrationModule } from './modules/shared/supplier-integration/supplier-integration.module';
 import { PricingCampaignsModule } from './modules/shared/pricing-campaigns/pricing-campaigns.module';
-// import { NotificationsModule } from './modules/notifications/notifications.module'; // Disabled due to realtime dependency
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AuthModule } from './core/auth/auth.module';
 import { WebhookModule } from './modules/webhooks/webhook.module';
 // import { PaymentModule } from './core/integrations/payment/payment.module';
 import { SettingsModule } from './modules/settings/settings.module';
-// import { PaymentModule as PaymentModuleV2 } from './modules/payment/payment.module';
+import { PaymentModule as PaymentModuleV2 } from './modules/payment/payment.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { EventsModule } from './core/events/events.module';
 import { CommonModule } from './common/module';
@@ -93,10 +93,10 @@ import { CommonModule } from './common/module';
     AccountingModule,
     SupplierIntegrationModule,
     PricingCampaignsModule,
-    // NotificationsModule, // Temporarily disabled due to AI dependency
+    NotificationsModule,
     WebhookModule,
     // PaymentModule,
-    // PaymentModuleV2, // Temporarily disabled due to AI dependency
+    PaymentModuleV2, // Enabled - payment processing works without fraud detection
     InventoryModule,
     SettingsModule,
   ],
